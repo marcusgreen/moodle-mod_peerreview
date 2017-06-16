@@ -46,8 +46,12 @@ class peerreview_criteria_form extends moodleform {
         $mform->addElement('hidden', 'peerreviewid', $this->_customdata['peerreviewid']);
         $mform->setType('peerreviewid', PARAM_INT);
 
-        // Add help icon
-        $mform->addElement('static', '', '', $OUTPUT->help_icon('criteriawriting', 'peerreview', true));
+// Help on review process
+        $myhelp =  '<div style="text-align:center;margin-left:100px;">'
+            . get_string('criteriawriting','peerreview');
+        $myhelp = $myhelp . $OUTPUT->help_icon('criteriawriting', 'peerreview', true);
+        $myhelp = $myhelp .'</div>';
+        $mform->addElement('static', '', '', $myhelp);
 
         // Define criteria and repeat
         $repeatarray=array();

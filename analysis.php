@@ -43,12 +43,13 @@ require_capability('mod/peerreview:grade', $context);
 
 // Set up the page
 $attributes = array('peerreviewid' => $peerreview->id, 'id' => $cm->id);
-$PAGE->set_url('/mod/peerreview/submissions.php', $attributes);
+$baseurl = '/mod/peerreview/analysis.php';
+$PAGE->set_url($baseurl, $attributes);
 $PAGE->set_title(format_string($peerreview->name));
 $PAGE->set_heading(format_string($course->fullname));
 $PAGE->set_context($context);
 echo $OUTPUT->header();
-echo peerreview_tabs($cm->id, $peerreview->id, 'submissions');
+echo peerreview_tabs($cm->id, $peerreview->id, 'analysis');
 
 // Require JS needed for page.
 $jsmodule = array(
@@ -83,6 +84,10 @@ $moderationtarget = get_user_preferences('peerreview_moderationtarget', 0);
 $quickgrade       = get_user_preferences('peerreview_quickgrade', 0);
 $page             = optional_param('page', 0, PARAM_INT);
 
+
+peerreview_print_analysis($peerreview, $course, $cm, $context, $baseurl, $attributes);
+die;
+
 $reviewStats = get_review_statistics($peerreview);
 
 // Print optional message
@@ -91,9 +96,9 @@ if (!empty($message)) {
 }
 
 // Help on review process
-echo '<div style="text-align:center;margin:0 0 10px 0;">'. get_string('reviewallocation','peerreview');
+echo html_writer::start_tag('div', array('style'=>'text-align:center;margin:-10px 0 10px 0;'));
 echo $OUTPUT->help_icon('reviewallocation', 'peerreview', true);
-echo '</div>';
+echo html_writer::end_tag('div');
 
 // Get all users who are allowed to submit assignments
 if ($users = get_users_by_capability($context, 'mod/peerreview:submit', 'u.id')) {
@@ -126,14 +131,14 @@ $table = new flexible_table('mod-peerreview-submissions');
 $tablecolumns = array('picture', 'fullname', 'timecreated', 'reviews', 'moderations', 'status', 'seedoreviews', 'suggestedmark','finalgrade');
 $table->define_columns($tablecolumns);
 $tableheaders = array('',
-                      get_string('fullname'),
-                      get_string('submission','peerreview').$OUTPUT->help_icon('submission','peerreview',false),
-                      get_string('reviewsbystudent','peerreview').$OUTPUT->help_icon('reviewsbystudent','peerreview',false),
-                      get_string('moderationstitle','peerreview').$OUTPUT->help_icon('moderationtarget','peerreview',false),
-                      get_string('status').$OUTPUT->help_icon('status','peerreview',false),
-                      get_string('seedoreviews','peerreview').$OUTPUT->help_icon('seedoreviews','peerreview',false),
-                      get_string('suggestedgrade','peerreview').$OUTPUT->help_icon('suggestedgrade','peerreview',false),
-                      get_string('finalgrade', 'peerreview').$OUTPUT->help_icon('finalgrade','peerreview',false)
+    get_string('fullname'),
+    get_string('submission','peerreview').$OUTPUT->help_icon('submission','peerreview',false),
+    get_string('reviewsbystudent','peerreview').$OUTPUT->help_icon('reviewsbystudent','peerreview',false),
+    get_string('moderationstitle','peerreview').$OUTPUT->help_icon('moderationtarget','peerreview',false),
+    get_string('status').$OUTPUT->help_icon('status','peerreview',false),
+    get_string('seedoreviews','peerreview').$OUTPUT->help_icon('seedoreviews','peerreview',false),
+    get_string('suggestedgrade','peerreview').$OUTPUT->help_icon('suggestedgrade','peerreview',false),
+    get_string('finalgrade', 'peerreview').$OUTPUT->help_icon('finalgrade','peerreview',false)
 );
 $table->define_headers($tableheaders);
 //$table->define_baseurl($CFG->wwwroot.'/mod/peerreview/submissions.php?id='.$cm->id.'&amp;currentgroup='.$currentgroup);
@@ -224,7 +229,7 @@ if (($ausers = $DB->get_records_sql($sql.$sort,null,$table->get_page_start(), $t
             $timecreated = $fileLink.' '.userdate($auser->timecreated,get_string('strftimeintable','peerreview'));
             $url = new moodle_url('/mod/peerreview/resubmit.php', array('peerreviewid'=>$peerreview->id,'userid'=>$auser->id));
             $timecreated .= html_writer::link($url, '<br />('.get_string('resubmitlabel','peerreview').')');
-            
+
             // Reviews by student
             $numberOfReviewsByThisStudent = 0;
             $reviews = html_writer::start_tag('div', array('id'=>'re'.$auser->id));
@@ -232,16 +237,15 @@ if (($ausers = $DB->get_records_sql($sql.$sort,null,$table->get_page_start(), $t
             if($reviewsByThisStudent = $DB->get_records('peerreview_review', array('peerreview'=>$peerreview->id, 'reviewer'=>$auser->id, 'completed'=>'1'))) {
                 $numberOfReviewsByThisStudent = count($reviewsByThisStudent);
                 $reviewsByThisStudent = array_values($reviewsByThisStudent);
-                
+
                 for($i=0; $i<$numberOfReviewsByThisStudent; $i++) {
                     $params = array(
                         'id'=>'rev'.$reviewsByThisStudent[$i]->id,
-                        'class'=>'myreviewButton',
+                        'class'=>'reviewButton',
                         'onmouseover'=>'M.peerreview.highlight(\'se'.$reviewsByThisStudent[$i]->reviewee.'\', \'#ff9999\');',
                         'onmouseout'=>'M.peerreview.highlight(\'se'.$reviewsByThisStudent[$i]->reviewee.'\', \'transparent\');'
                     );
-
-                    $reviews .= html_writer::start_tag('div', $params);
+                    $reviews .= html_writer::start_tag('span', $params);
                     $url = new moodle_url('/mod/peerreview/mark.php', array('peerreviewid'=>$peerreview->id, 'userid'=>$reviewsByThisStudent[$i]->reviewee));
                     $buttonText = ''.($i+1);
                     $timeTakenReviewing = $reviewsByThisStudent[$i]->timecompleted - $reviewsByThisStudent[$i]->timedownloaded;
@@ -256,15 +260,12 @@ if (($ausers = $DB->get_records_sql($sql.$sort,null,$table->get_page_start(), $t
                         $buttonText .= 'F';
                     }
                     $options = array('class'=>'peerReviewButton');
-
                     $reviews .= $OUTPUT->single_button($url, $buttonText, 'get', $options);
-                    $reviews .= html_writer::end_tag('div');
-
+                    $reviews .= html_writer::end_tag('span');
                 }
-              
             }
             $reviews .= html_writer::end_tag('div');
-            
+
             // Reviews of student
             // TODO get this once for all students
             $reviewsOfThisStudent = get_reviews_of_student($peerreview->id, $auser->id);
@@ -284,7 +285,7 @@ if (($ausers = $DB->get_records_sql($sql.$sort,null,$table->get_page_start(), $t
             // TODO get this once for all students
             $statusCode = get_status($reviewsOfThisStudent,$numberOfCriteria);
             $status = print_status($statusCode, true);
-            
+
             // Review button
             $params = array(
                 'id'=>'se'.$auser->id,
@@ -296,7 +297,7 @@ if (($ausers = $DB->get_records_sql($sql.$sort,null,$table->get_page_start(), $t
             $url = new moodle_url('/mod/peerreview/mark.php', array('peerreviewid'=>$peerreview->id, 'userid'=>$auser->id)); //, 'offset'=>$offset));
             $buttontext = get_string('review','peerreview');
             $button = $OUTPUT->single_button($url, $buttontext);
-            $seedoreviews .= html_writer::tag('span', $button); //this third prm show vertical line colored array('class'=>'status'.($statusCode<=3?'0':'1'))
+            $seedoreviews .= html_writer::tag('span', $button, array('class'=>'status'.($statusCode<=3?'0':'1')));
             $seedoreviews .= html_writer::end_tag('div');
 
             // Suggest mark
@@ -327,7 +328,7 @@ if (($ausers = $DB->get_records_sql($sql.$sort,null,$table->get_page_start(), $t
                 $grade = get_string('notset','peerreview');
             }
         }
-        
+
         // No submission made yet
         else {
             $timecreated   = html_writer::tag('div', '&nbsp;', array('id'=>'tt'));

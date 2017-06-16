@@ -28,7 +28,7 @@ defined('MOODLE_INTERNAL') || die();
 
 // Required strings
 $string['modulename'] = 'Peer review';
-$string['modulename_help'] = 'Use the peerreview module for... | The peerreview module allows...';
+$string['modulename_help'] = 'Use the Peer review module to allow users to peer review other students\' submissions';
 $string['modulenameplural'] = 'Peer review activities';
 $string['pluginadministration'] = 'Peer review administration';
 $string['pluginname'] = 'Peer review';
@@ -74,21 +74,27 @@ $string['peerreview:addinstance'] = 'Add a Peer review activity';
 $string['peerreview:grade'] = 'Grade a Peer review activity';
 $string['peerreview:revealidentities'] = 'See the identity of anonymous submitters and reviewers';
 $string['peerreview:view'] = 'View a Peer review activity';
-
+$string['value'] = 'Value';
+$string['peerreview:submit'] = 'Submit a Peer review activity';
 // Criteria page strings
 $string['criteriawriting'] = 'Writing criteria';
-$string['criteriawriting_help'] = '
+$string['criteriawriting_help'] = '<BR><BR><BR><BR><BR><BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR><BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR><BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR><BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR><BR>BR><BR><BR><BR>
+<BR><BR><BR><BR><BR><BR>BR>
 <p><em>Well written criteria are the key to a successful Peer review activity.</em></p>
 <p><strong>Criteria should be...</strong></p>
 <ul>
 <li><strong>Objective</strong><br />
-Criteria should be <em>objective</em> rather than <em>subjective</em>. They should be used to test the presence or correctness of a feature in a student\'s submission. They should not be used to ask students to make a judgement of quality. Evaluations made by students (even Masters students) are not consistent when students are asked to make subjective judgements.</li>
+Criteria should be <em>objective</em> rather than <em>subjective</em>. They should be used to test the presence or correctness of a feature in a student\'s submission. They should not be used to ask students to make a judgement of quality.</li>
 <br />
 <li><strong>Concise</strong><br />
 Students should be able to evaluate the work of another student, even if they themselves have not reached that standard. This means you should provide instructions on how to test the criteria.</li>
 <br />
 <li><strong>Binary</strong><br />
-<em>Remember, these criteria are for students, not teachers.</em> If at first thought a scale is desired, ask yourself how you would define the levels of that scale; ask "what differentiates the levels?" Then ask: "what level is desirable?" Setting a binary criterion at the desired level drives students to accomplish that level. If you want to offer reward for a partially correct response, or a superior response, divide that criterion into finer grained criteria that are more specific. Binary criteria are makes objective evaluation possible for students. Using a binary rubric also sets a definitive standard, which can inturn encourage greater retention and better student outcomes. Students appreciate removing the "guess-work"; binary criteria make work "achievable".</li>
+<em>Remember, these criteria are for students, not teachers.</em> If at first thought a scale is desired, ask yourself how you would define the levels of that scale; ask "what differentiates the levels?" Then ask: "what level is desirable?" Setting a binary criterion at the desired level drives students to accomplish that level. If you want to offer reward for a partially correct response, or a superior response, divide that criterion into finer grained criteria that are more specific. Binary criteria are makes objective evaluation possible for students.</li>
 </ul>
 <p><strong>Hidden Answers</strong></p>
 <p>The criteria are shown to students with the activity description, even before they submit.</p>
@@ -97,7 +103,7 @@ Students should be able to evaluate the work of another student, even if they th
 <p>Criteria can be simple short pieces of text, or more complex. If you know how to write in HTML, this can help you to create criteria with structure and formatting. For example, tags such as <code>&lt;strong&gt;...&lt;/strong&gt;</code> can be placed around text to make it <strong>strong</strong>, <code>&lt;em&gt;...&lt;/em&gt;</code> tags for <em>emphasis</em>, a singleton <code>&lt;br /&gt;</code> tag can be used to include a line break, and so on.</p>
 <p><strong>Criterion Values</strong></p>
 <p>The values for all criteria, plus the reward students receive for completing reviews, should sum to the Grade value for the activity. The system attempts to enforce correct addition. Guidance is provided at the bottom of the Criteria page.</p>
-<h1>Examples of Criteria</h1>
+<h6>Examples of Criteria</h6>
 <p>The following are good examples are objective, concise, binary criteria. (HTML tags have been used to bolden text and insert line-breaks.)</p>
 <table>
     <tr>
@@ -162,7 +168,7 @@ $string['submit'] = 'Submit';
 $string['reviews'] = 'Reviews';
 $string['feedback'] = 'Feedback';
 $string['submitbelow'] = 'Submit below';
-$string['closed'] = 'This activity is closed. You cannot submit.';
+$string['closed'] = 'Activity closed. Cannot submit';
 $string['submitfirst'] = 'Submit first';
 $string['notavailable'] = 'Not available yet';
 $string['submitted'] = 'Submitted';
@@ -170,11 +176,11 @@ $string['reviewsonemore'] = 'Complete one more';
 $string['reviewsnotallocated'] = 'Not allocated, return later';
 $string['completereviewsbelow'] = 'Complete reviews below';
 $string['notavailable'] = 'Not available yet';
-$string['reviewscomplete'] = 'Reviews have all been completed';
+$string['reviewscomplete'] = 'Reviews complete';
 $string['markassigned'] = 'Mark assigned';
 $string['marknotassigned'] = 'Waiting for mark';
 $string['reviewnumber'] = 'Review {$a} of 2';
-$string['showdescription'] = 'Show description';
+$string['showdescription'] = 'Show peer review description';
 $string['hidedescription'] = 'Hide description';
 $string['commentinstructions'] = '<em>Offer praise and positive suggestions for improvements. Remember, this student is learning just like you.</em>';
 $string['criteriainstructions'] = '<em>Click in each box only if the criterion has been <strong>fully met</strong>.</em>';
@@ -223,7 +229,7 @@ $string['noreviews'] = 'No reviews have been made of your submission yet.';
 // Upload form
 $string['submituploadedfile'] = 'Submit Uploaded File...';
 $string['singleuploadwarning'] = 'Warning: You can only submit once.';
-$string['singleuploadquestion'] = 'Are you sure you want to submit?';
+$string['singleuploadquestion'] = 'Are you sure you want to submit? <BR> You can only submit once';
 $string['onlinesubmission'] = 'Submission';
 $string['nosubmission'] = 'Nothing was submitted. You must submit something.';
 $string['incorrectfileextension'] = 'The file you uploaded was not the type of file required. You need to submit a file with a .{$a} file extension.';
@@ -239,19 +245,22 @@ $string['reviewsallocatedlinktext'] = 'Click here to begin reviews';
 $string['reviewunflagged'] = 'Review un-flagged';
 $string['reviewflagged'] = 'Review flagged';
 
-// Reviewing
+// Reviewingbenefitsofpeerreview
 $string['getthedocument'] = 'Step 1. <em>Save</em> the document then open it';
 $string['reviewdocument'] = 'Step 2. Review the submission';
 
 // Submissions page
 $string['reviewallocation'] = 'How are reviews allocated?';
 $string['reviewallocation_help'] = '
+<br><br><br>
 <p>Reviews are allocated automatically by the system using a backwards-allocation method.</p>
 <p>Initial submissions are pooled and early submitters are told they will be notified by email when they can commence reviewing.</p>
 <p>When the initial pool reaches the required size (around 4 to 5), each early submitter is allocated two reviews from the initial pool.</p>
 <p>Later submitters review the submissions of two students who submitted before them (but not immediately before them). In this way, most students can review immediately after they submit.</p>
 <p>The chain of review relationships can continue indefinitely after this point in time.</p>
 <p>Here are some facts about the number of reviews students will conduct and receive.</p>
+</br>
+<td>
 <ul>
     <li>All students are expected to complete two reviews (usually with the incentive of marks).</li>
     <li>Most students receive two peer reviews.</li>
@@ -399,28 +408,130 @@ $string['savedcomments_help'] = '
 <p>The purpose of pre-saved comments is to speed up the marking process and to provide consistency across markers.</p>
 <p>Pre-saved comments are saved when a pre-existing review or a new moderation review is saved.</p>
 ';
-$string['savenew'] = 'Save new review';
+$string['savenew'] = 'Save new review only';
 $string['savepreexistingonly'] = 'Save changes to pre-existing reviews only';
+$string['savenewandold'] = 'Save new review and changes to pre-existing reviews';
 $string['moderationbuttons'] = 'Buttons shown during moderations';
 $string['moderationbuttons_help'] = '
 <p>Buttons are shown at the bottom of the moderation (feedback) window.</p>
 <p>Depending on if there are previous reviews, and depending on where you are in the order of the list of submissions, you will see some or all of the following buttons.</p>
 <ul>
+ <li><strong>Cancel</strong><br />
+    Closes the current window without saving any changes.</li>   <br />
     <li><strong>Save changes to pre-existing reviews only</strong><br />
     A teacher has the potential to alter reviews made previously by students or teachers. This is usually done on the behalf of students who cannot change reviews they have made after reviews are saved.</li>
     <br />
-    <li><strong>Cancel</strong><br />
-    Closes the current window without saving any changes.</li>
-    <br />
-    <li><strong>Save new review</strong><br />
+    <li><strong>Save new review only</strong><br />
     Saves new review information and closes the current window. This option does not save changes to pre-existing reviews.</li>
     <br />
-    <li><strong>Save new and goto next</strong><br />
-    Saves new review information and moves to the next submission in the order listed on the Submissions page. This option does not save changes to pre-existing reviews.</li>
-    <br />
-    <li><strong>Next</strong><br />
-    Moves to the next submission in the order listed on the Submissions page without saving any changes.</li>
+    <li><strong>Save new review and changes to pre-existing reviews</strong><br />
+   Save new review made by the teacher and save the changes to-pre-existing reviews made previously by students</li>
 </ul>
 ';
 $string['quick'] = 'Quick';
 $string['characters'] = 'characters';
+
+
+$string['nosubmitusers'] = 'No users submit';
+$string['good'] = 'Good';
+$string['short'] = 'Short';
+$string['resubmissionwarning'] = 'Resubmission Warning';
+$string['uploada'] = 'Upload a';
+$string['witha'] = 'With a';
+$string['file'] = 'File';
+$string['extension'] = 'Extension';
+$string['submissions'] = 'Submissions';
+$string['nocompletesubmissions'] = 'No Complete Submissions';
+$string['goodlength'] = 'Good length';
+$string['poor'] = 'Poor';
+$string['emailstatus'] = 'Email status';
+$string['previouslyset'] = 'Previously set';
+$string['nochange'] = 'No change';
+$string['emailnotsent'] = 'Email not sent';
+$string['emailsent'] = 'Email sent';
+$string['unabletoset'] = 'Unable to set';
+$string['gradeset'] = 'Grade set';
+$string['hidesubmission'] = 'Hide submission';
+$string['showsubmissiontoreview'] = 'Show submission to continue';
+$string['getthedocumenttoreview'] = 'Step 1. <em>Save</em> the document to continue';
+$string['gradesetmessage'] = 'You have been assigned a grade';
+$string['gradeassignedlinktext'] = 'Click here to see the grade you have been assigned';
+$string['timeremaining'] = 'Remaining';
+$string['uploadafile'] = 'Upload a {$a} file';
+$string['analysis'] = 'Analysis';
+$string['benefitsofpeerreview'] = 'Benefits of Peer Review Assignments';
+$string['benefitsofpeerreview_help'] =  '<BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR>
+<BR><BR><BR><BR><BR><BR><BR><BR><BR><BR>
+<h5>Benefits of Peer Review Assignments</h5>
+<p>Peer Review assignments can deliver benefits to both teachers and students.</p>
+<ul>
+    <li><strong>Higher Order Thinking Skills</strong><br />
+    In order to evaluate the work of others, students must think about relevant concepts at a higher cognitive level. Peer review also encourages reflection, which is a higher order thinking skill.</li>
+    <br />
+    <li><strong>Student Involvement in the Assessment Process</strong><br />
+    Students are not able to leave the task and forget about it after they submit. Students may learn more deeply when they are involved in both the creation and the assessment of assignment submissions.</li>
+    <br />
+    <li><strong>Students Receive More Feedback and Faster</strong><br />
+    Students receive feedback from peers and instructors. Peer reviews can come much faster than teacher reviews.</li>
+    <br />
+    <li><strong>Reviewing Encourages a Community of Learners</strong><br />
+    Students who view the work of their peers are given a sense that they are not alone in their learning journey.</li>
+    <br />
+    <li><strong>Streamlined Marking for Teachers</strong><br />
+    Teachers can adopt various levels of moderation depending on how much input they wish to have over the assessment process. If peer reviews are correct and consistent the system will suggest a mark, which the teacher can apply as a final mark. Teachers can have greater oversight of submissions, even marking all submissions if they so desire. Armed with pre-existing reviews, a saved list of comments, and a streamlined process, moderating a peer-review assignment be achieved will less effort than regular marking.</li>
+</ul>
+<p>These benefits depend on the task and criteria being well designed. The advice given on the Analysis page may assist you in improving your Peer Review assignments.</p>
+';
+$string['statistic'] = 'Statistic';
+$string['analysislabelsubmissions'] = 'Submissions';
+$string['analysislabelnumberofstudents'] = 'Number of students';
+$string['analysislabelnumberofsubmissions'] = 'Number of submissions';
+$string['analysislabelsubmissionrate'] = 'Submission rate';
+$string['analysislabelaveragewait'] = 'Average time from submission to receipt of first review';
+$string['analysislabelmedianwait'] = 'Median time from submission to receipt of first review';
+$string['advice'] = 'Advice';
+$string['analysislabelreviewing'] = 'Reviewing';
+$string['analysislabelreviewscompleted'] = 'Reviews completed';
+$string['advicereviewmin'] = 'Number of reviews must reach {$a} before statistics are calculated';
+$string['advicereviewrate'] = 'Consider offering more reward marks for reviewing';
+$string['analysislabelreviewrate'] = 'Review rate';
+$string['analysislabelnormalisedaveragereviewtime'] = 'Normalised average review time (ignores outliers)';
+$string['advicereviewtime'] = 'Consider making reviewing more involved';
+$string['analysislabelaveragereviewtime'] = 'Average review time';
+$string['analysislabelstddevreviewtime'] = 'Standard deviation of review times';
+$string['analysislabelminreview'] = 'Quickest review';
+$string['analysislabelmaxreview'] = 'Longest review';
+$string['analysislabelnormalisedaveragecomment'] = 'Normalised average comment length (ignores outliers)';
+$string['advicecommentlength'] = 'Consider providing suggestions for comments';
+$string['analysislabelaveragecomment'] = 'Average comment length';
+$string['analysislabelstddevcomment'] = 'Standard deviation of comment lengths';
+$string['analysislabelmincomment'] = 'Shortest comment';
+$string['analysislabelmaxcomment'] = 'Longest comment';
+$string['analysislabelflags'] = 'Number of flags';
+$string['analysislabelflagrate'] = 'Flag rate';
+$string['adviceflagrate'] = 'Consider making criteria more objective';
+$string['analysislabelmoderations'] = 'Moderation reviews by teachers';
+$string['analysislabelmoderationrate'] = 'Moderation rate';
+$string['advicemoderationrate'] = 'Consider reducing the number of criteria and providing more detail in criteria';
+$string['analysislabelfeedbackattention'] = 'Feedback Attention';
+$string['numberofreviewsviewed'] = 'Number of reviews viewed by reviewee';
+$string['reviewattentionrate'] = 'Review attention rate';
+$string['advicereviewattentionrate'] = 'Consider directing students to view their review feedback';
+$string['numberofreviewviews'] = 'Number of views by all reviewees';
+$string['averageviewrate'] = 'Average number of views per review';
+$string['averageperiodbewtweenreviewandview'] = 'Average period between review completion and view by reviewee';
+$string['medianperiodbewtweenreviewandview'] = 'Median period between review completion and view by reviewee';
+$string['analysislabelcheckedcount'] = 'Checked Count';
+$string['analysislabelcheckedrate'] = 'Checked Rate';
+$string['analysislabelcriteria'] = 'Criteria';
+$string['advicecheckedrate'] = 'Consider reducing task difficulty or lowering criterion standard';
+
+
+$string['completionsubmit'] = 'Student must submit to and complete reviews for this activity to complete it';
+$string['mustcheck'] = 'Check review';
+$string['mustreview'] = 'Review other submissions';
+$string['mustsubmit'] = 'Add submission';
+
+$string['warningalreadysubmitted'] = 'Warning: Submissions have been made. Changing these settings now could be dangerous';
+$string['longerthanmost'] = 'Longer than most';
+$string['shorterthanmost'] = 'Shorter than most';

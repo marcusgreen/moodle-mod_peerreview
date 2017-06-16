@@ -20,12 +20,16 @@
  *
  * @package    mod
  * @subpackage peerreview
- * @copyright  2013 Michael de Raadt (michaeld@moodle.com)
+ * @copyright  2017 Antonello Moro (antonello@treagles.it). Forked from 2013 Michael de Raadt (michaeld@moodle.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$module->version   = 2013030101;
-$module->requires  = 2010112400;
-$module->component = 'mod_peerreview';
+$plugin->version   = 2017041100;
+$plugin->requires  = 2015111600;
+$plugin->component = 'mod_peerreview';
+
+//$module->maturity  = MATURITY_STABLE;
+//$module->release   = "Stable (2012121302)"; // User-friendly version number
+//$module->cron      = 0; // Period for cron to check this module (secs)

@@ -2,7 +2,7 @@
 
 .progressBox {
 	float: left;
-	width: 200px;
+	width: 205px;
 	height: 45px;
 	margin: 0 10px 10px 0;
     padding: 5px;
@@ -44,7 +44,7 @@
     padding: 0;
     position: absolute;
     left: 30px;
-    top: 30px;
+    top: 25px;
 }
 
 .greyProgressBox .progressMessage {
@@ -241,6 +241,10 @@
 
 .reviewButton div, .reviewButton form {
     display: inline;
+}
+
+.myreviewButton{
+    padding:2px 2px;
 }
 
 .massMarkTable div table, .analysis div table {

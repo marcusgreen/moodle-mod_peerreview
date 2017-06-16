@@ -35,10 +35,14 @@ M.peerreview = {
     },
 
     initHiddenDescription: function() {
-        document.getElementById('hiddenDescription').style.display='none';
-        document.getElementById('assignmentDescription').style.display='none';
-        document.getElementById('showDescription').style.display='block';
-        document.getElementById('hideDescription').style.display='block';
+        try{
+            document.getElementById('hiddenDescription').style.display='none';
+            document.getElementById('assignmentDescription').style.display='none';
+            document.getElementById('showDescription').style.display='block';
+            document.getElementById('hideDescription').style.display='block';
+        }catch (err) {}
+
+
     },
 
     showDescription: function () {
@@ -51,6 +55,15 @@ M.peerreview = {
         document.getElementById('showDescription').style.display='block';
     },
 
+    showOnlineSubmission: function () {
+        document.getElementById('hiddenOnlineSubmission').style.display='block';
+        document.getElementById('showOnlineSubmission').style.display='none';
+        this.enableReviewButton();
+    },
+    hideOnlineSubmission: function () {
+        document.getElementById('hiddenOnlineSubmission').style.display='none';
+        document.getElementById('showOnlineSubmission').style.display='block';
+    },
     setNextPR: function (nextid){
         document.getElementById('submitform').mode.value='next';
         document.getElementById('submitform').userid.value=nextid;
@@ -111,6 +124,11 @@ M.peerreview = {
         for (var i = 0; i < elements.length; i++) {
             elements[i].disabled = false;
         }
+    },
+
+    enableReviewButton: function() {
+        var button = document.getElementById('idbuttoncontinuereview');
+        button.disabled = false;
     },
 
     highlight: function(ids, colour) {

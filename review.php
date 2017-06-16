@@ -81,19 +81,16 @@ if($cangrade && $numberOfCriteria==0) {
     die();
 }
 
-//first time, grade item not exsts and it launches a warning. Avoid with try catch
-//add to permit the completion of the peerreview
-$completion=new completion_info($course);
-$completion->set_module_viewed($cm);
-
-
 // Output starts here
 echo $OUTPUT->header();
 
 // Show teachers tabs
 if($cangrade) {
     echo peerreview_tabs($cm->id, $peerreview->id, 'description');
-} else { // Shows students their status
+}
+
+// Shows students their status
+else {
 
     // Check for existing submissions and reviews
     $submission = get_submission($peerreview->id);
@@ -123,7 +120,6 @@ if($cangrade) {
         }
         print_progress_box('greyProgressBox', '2', 'reviews', 'submitfirst');
         print_progress_box('greyProgressBox', '3', 'feedback', 'notavailable');
-
     }
 
     // Submitted
@@ -156,7 +152,6 @@ if($cangrade) {
         }
     }
 }
-
 print_progress_box('end');
 
 // Completing Reviews
@@ -196,7 +191,6 @@ if(!$cangrade && $submission && $numberOfReviewsAllocated==2 && $numberOfReviews
     else {
 */
     // Save review
-    // TODO: simplify cleaning here
     if($comment = clean_param(htmlspecialchars(optional_param('comment', NULL, PARAM_RAW)), PARAM_CLEAN)) {
         $reviewnumber = required_param('review', PARAM_INT);
         $reviewToUpdate = $DB->get_record('peerreview_review', array('id'=>$reviewsAllocated[$numberOfReviewsCompleted]->id));
@@ -247,67 +241,72 @@ if(!$cangrade && $submission && $numberOfReviewsAllocated==2 && $numberOfReviews
             $submission = get_submission($peerreview->id, $review->reviewee);
             if($peerreview->submissionformat==ONLINE_TEXT) {
                 // TODO: Check if this is the best way to show a submission
-
-
-                $jsmodule = array(
-                    'name' => 'peerreview',
-                    'fullpath' => '/mod/peerreview/module.js',
-                    'requires' => array(),
-                    'strings' => array(),
-                );
-                $PAGE->requires->js_init_call(null, null, false, $jsmodule);
-                echo HTML_WRITER::start_tag('p', array('id'=>'showOnlineSubmission'));
-                echo HTML_WRITER::tag('a', get_string('showsubmissiontoreview','peerreview'), array('href'=>'#null', 'onclick'=>'M.peerreview.showOnlineSubmission();'));
-                echo HTML_WRITER::end_tag('p');
-                echo HTML_WRITER::start_tag('div', array('id'=>'hiddenOnlineSubmission', 'style'=>'display:none;'));
-                echo HTML_WRITER::tag('a', get_string('hidesubmission','peerreview'), array('href'=>'#null', 'onclick'=>'M.peerreview.hideOnlineSubmission();'));
                 echo $OUTPUT->box(format_text(stripslashes($submission->onlinetext), PARAM_CLEAN),
-                    'generalbox', 'onlineTextSubmission');
-                echo HTML_WRITER::end_tag('div');
-                $jsmodule = array(
-                    'name' => 'peerreview',
-                    'fullpath' => '/mod/peerreview/module.js',
-                    'requires' => array(),
-                    'strings' => array(),
-                );
-                $PAGE->requires->js_init_call('M.peerreview.initHiddenDescription', null, false, $jsmodule);
+                                  'generalbox', 'onlineTextSubmission');
+
                 // Set the file status to downloaded
                 $review->downloaded = 1;
                 $review->timedownloaded = time();
                 $review->timemodified = $review->timedownloaded;
                 $DB->update_record('peerreview_review',$review);
-
-                echo '<br><br>';
-                $url = new moodle_url($CFG->wwwroot.'/mod/peerreview/review.php');
-                $continue_button = '<form method="get" action="' . $url->out() . '">';
-                $continue_button .= '<input type="hidden" name="sesskey" value="' . sesskey() . '">';
-                $continue_button .= '<input type="hidden" name="id" value="' . $id . '">';
-                $continue_button .= '<button type="submit" class="btn btn-primary" id="idbuttoncontinuereview" title="" disabled="">' . get_string('continue') . '</button>';
-                $continue_button .= '</form>';
-                echo $continue_button;
             }
             else {
-                echo $OUTPUT->heading(get_string('getthedocumenttoreview','peerreview'), 3, 'leftHeading');
-                echo review_file_link($peerreview, $submission->id, $context->id, $numberOfReviewsCompleted+1, 'M.peerreview.enableReviewButton();');
-                echo '<br><br>';
-                $url = new moodle_url($CFG->wwwroot.'/mod/peerreview/review.php');
-
-                $continue_button = '<form method="get" action="' . $url->out() . '">';
-                $continue_button .= '<input type="hidden" name="sesskey" value="' . sesskey() . '">';
-                $continue_button .= '<input type="hidden" name="id" value="' . $id . '">';
-                $continue_button .= '<button type="submit" class="btn btn-primary" id="idbuttoncontinuereview" title="" disabled="">' . get_string('continue') . '</button>';
-                $continue_button .= '</form>';
-                echo $continue_button;
-                $jsmodule = array(
-                    'name' => 'peerreview',
-                    'fullpath' => '/mod/peerreview/module.js',
-                    'requires' => array(),
-                    'strings' => array(),
-                );
-                $PAGE->requires->js_init_call(null, null, false, $jsmodule);
+                echo $OUTPUT->heading(get_string('reviewdocument','peerreview'), 3, 'leftHeading');
             }
-
         }
+
+
+        echo HTML_WRITER::start_tag('form', array('action' => 'view.php', 'method' => 'post', 'id' => 'peerreviewform'));
+        echo HTML_WRITER::empty_tag('input', array('type' => 'hidden', 'name' => 'id', 'value' => $cm->id));
+        echo HTML_WRITER::empty_tag('input', array('type' => 'hidden', 'name' => 'review', 'value' => $numberOfReviewsCompleted+1));
+        echo HTML_WRITER::tag('p', get_string('criteriainstructions','peerreview'));
+        $table = new html_table();
+        $table->attributes = array('class' => 'criteriaTable');
+        $table->colclasses = array('criteriaCheckboxColumn', 'criteriaTextColumn');
+        $options = new stdClass();
+        $options->para = false;
+
+        foreach($criteriaList as $i=>$criterion) {
+            $row = new html_table_row();
+            $cell = new html_table_cell();
+            $attributes = array('type' => 'checkbox', 'name' => 'criterion'.$criterion->ordernumber,
+                                'id' => 'criterion'.$criterion->ordernumber);
+            $cell->text = HTML_WRITER::empty_tag('input', $attributes);
+            $row->cells[] = $cell;
+            $cell = new html_table_cell();
+            if (!empty($criterion->textshownatreview)) {
+                $text = $criterion->textshownatreview;
+            }
+            else {
+                $text = $criterion->textshownwithinstructions;
+            }
+            $attributes = array('for' => 'criterion'.$criterion->ordernumber);
+            $cell->text = HTML_WRITER::tag('label', format_text($text, FORMAT_MOODLE, $options), $attributes);
+            $row->cells[] = $cell;
+            $table->data[] = $row;
+        }
+
+        echo HTML_WRITER::table($table);
+
+        echo $OUTPUT->spacer(array('height'=>5));
+        echo HTML_WRITER::tag('p', get_string('commentinstructions','peerreview'));
+        $attributes = array('name' => 'comment', 'id' => 'comment', 'rows' => '5', 'class' => 'writeCommentTextBox');
+        echo HTML_WRITER::tag('textarea', '', $attributes);
+
+        echo $OUTPUT->spacer(array('height'=>5));
+        $PAGE->requires->string_for_js('nocommentalert', 'peerreview');
+        $attributes = array('type' => 'submit', 'value' => get_string('savereview','peerreview'),
+                            'onclick' => 'return M.peerreview.checkComment();');
+        echo HTML_WRITER::empty_tag('input', $attributes);
+        echo HTML_WRITER::end_tag('form');
+        $jsmodule = array(
+            'name' => 'peerreview',
+            'fullpath' => '/mod/peerreview/module.js',
+            'requires' => array(),
+            'strings' => array(),
+        );
+        $PAGE->requires->js_init_call(null, null, false, $jsmodule);
+
     }
     else {
         echo $OUTPUT->notification(get_string('nocriteriaset','peerreview'));
@@ -336,12 +335,6 @@ else if(!$cangrade && $submission && $numberOfReviewsAllocated==0) {
 
 // Feedback on submission and reviews of student
 else if(!$cangrade && $submission && $numberOfReviewsCompleted==2) {
-
-    //MMPR-6 lancio la completion poichè ho eseguito le reviews
-    $completion = new completion_info($course);
-    $completion->update_state($cm, COMPLETION_COMPLETE, $USER->id);
-    //end mod
-
     echo $OUTPUT->box_start();
 
     // Find the reviews for this student
@@ -360,7 +353,7 @@ else if(!$cangrade && $submission && $numberOfReviewsCompleted==2) {
     $table = new html_table();
     $table->attributes = array('class' => 'submissionInfoTable');
     $table->colclasses = array('labelColumn');
-    $grade = $submission->timemarked==0?get_string('notavailable','peerreview'):$submission->grade;
+    $grade = $submission->timemarked==0?get_string('notavailable','peerreview'):$this->display_grade($submission->grade);
     $table->data[] = array(get_string('grade','peerreview').':', $grade);
     $statusString = '';
     switch($status) {
@@ -625,14 +618,6 @@ else if(!$cangrade && $submission && $numberOfReviewsCompleted==2) {
 
 // First page with description and criteria
 else {
-
-    // MMPR-6. Add help
-    if ($cangrade) {
-        echo html_writer::start_tag('div', array('style' => 'text-align:center;margin:-10px 0 10px 0;'));
-        echo get_string('whatdostudentssee', 'peerreview');
-        echo $OUTPUT->help_icon('whatdostudentssee', 'peerreview', true);
-        echo html_writer::end_tag('div');
-    }
     // Show description
     view_intro($peerreview, $cm->id);
 
@@ -640,7 +625,6 @@ else {
     echo $OUTPUT->box_start();
     echo HTML_WRITER::tag('a', '', array('name' => 'criteria'));
     echo $OUTPUT->heading(get_string('criteria','peerreview'), 2, 'leftHeading');
-
     if ($cangrade) {
         $criteriaurl = new moodle_url('/mod/peerreview/criteria.php', array('id'=>$cm->id, 'peerreviewid'=>$peerreview->id));
         echo $OUTPUT->action_link($criteriaurl, get_string('setcriteria', 'peerreview'));
@@ -660,27 +644,14 @@ else {
 
     // With peer review teachers can grade but not submit (not here)
     if(!isopen($peerreview)) {
-        echo '<BR>';
-        if ($peerreview->allowsubmissionsfromdate!=0){
-            echo '<strong><label >Available from:<label></strong>'. userdate($peerreview->allowsubmissionsfromdate);
-            echo '<BR>';
-        }
-        echo '<strong><label >Due Date:<label></strong>' . '       ' . userdate($peerreview->duedate);
-        echo '<BR>';
-        echo '<hr>';
         print_string("notopen","peerreview");
-
     }
     else if (has_capability('mod/peerreview:submit', $context) && !$cangrade && !$submission) {
         echo $OUTPUT->heading(get_string('submission','peerreview'), 2, 'leftHeading');
-        // Show due date and time remaining
-        echo get_string('duedate', 'peerreview') . ' ' . userdate($peerreview->duedate) . ' ' . display_remainingtime($peerreview->duedate);
         echo $OUTPUT->notification(get_string("singleuploadwarning","peerreview"));
-        view_upload_form($peerreview, $cm->id, $USER->id);
+        view_upload_form($peerreview, $cm->id);
     }
 }
-
-
 
 // Finish the page
 echo $OUTPUT->footer();

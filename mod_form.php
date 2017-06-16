@@ -40,7 +40,7 @@ class mod_peerreview_mod_form extends moodleform_mod {
      * Defines forms elements
      */
     public function definition() {
-        global $CFG, $COURSE;
+        global $CFG, $COURSE,$DB;
 
         $mform = $this->_form;
 
@@ -60,7 +60,15 @@ class mod_peerreview_mod_form extends moodleform_mod {
         $mform->addHelpButton('name', 'peerreviewname', 'peerreview');
 
         // Adding the standard "intro" and "introformat" fields
-        $this->add_intro_editor();
+        $this->standard_intro_elements();
+
+        //MMPR-& add warnig message if there are submissionsfor this peerreview
+        $submissions = $DB->get_records('peerreview_submissions', array('peerreview'=>$this->current->id));
+        $itemcount = count($submissions);
+        if ( $itemcount > 0) {
+            $mform->addElement('html', '<div style="background-color: yellow; color:red; text-align: center;"><h4>' . get_string('warningalreadysubmitted', 'peerreview') .'</h4></div>');
+        }
+        //warning message end
 
         $name = get_string('allowsubmissionsfromdate', 'peerreview');
         $mform->addElement('date_time_selector', 'allowsubmissionsfromdate', $name, array('optional'=>true));
@@ -225,15 +233,14 @@ class mod_peerreview_mod_form extends moodleform_mod {
     }
 
     public function add_completion_rules() {
-        // $mform =& $this->_form;
-
-        // $mform->addElement('checkbox', 'completionsubmit', '', get_string('completionsubmit', 'peerreview'));
-        // return array('completionsubmit');
-        return array();
+         $mform =& $this->_form;
+         $mform->addElement('checkbox', 'completionsubmit', '', get_string('completionsubmit', 'peerreview'));
+         return array('completionsubmit');
+        //return array();
     }
 
     public function completion_rule_enabled($data) {
-        // return !empty($data['completionsubmit']);
-        return false;
+         return !empty($data['completionsubmit']);
+        //return false;
     }
 }

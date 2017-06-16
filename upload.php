@@ -41,8 +41,9 @@ $continueurl = new moodle_url($CFG->wwwroot.'/mod/peerreview/view.php',array('id
 
 // Check user is logged in and capable of submitting
 require_login($course, false, $cm);
-require_capability('mod/peerreview:submit', $context);
 
+// Teacher?
+$cangrade = has_capability('mod/peerreview:grade', $context);
 // Set up the page
 $attributes = array('peerreviewid' => $peerreview->id, 'id' => $cm->id);
 $PAGE->set_url('/mod/peerreview/criteria.php', $attributes);
@@ -57,7 +58,8 @@ $POOL_SIZE = 2*$NUM_REVIEWS+1; // including current submitter
 
 if (isopen($peerreview)) {
 
-    if(!$DB->record_exists('peerreview_submissions',array('peerreview'=>$peerreview->id,'userid'=>$userid))) {
+    // Students can submit only once, teachers can resubmit students work
+    if($cangrade || !$DB->record_exists('peerreview_submissions',array('peerreview'=>$peerreview->id,'userid'=>$userid))) {
 
         $newsubmission = NULL;
 
@@ -65,10 +67,17 @@ if (isopen($peerreview)) {
         if($peerreview->submissionformat == ONLINE_TEXT) {
             $mform = new mod_peerreview_edit_form($CFG->wwwroot.'/mod/peerreview/upload.php',array('peerreviewid'=>$peerreview->id, 'id'=>$cm->id));
             if ($formdata = $mform->get_data()) {
-                $newsubmission = prepare_new_submission($peerreview->id, $userid);
-                $newsubmission->onlinetext = format_text($formdata->onlinetext['text'], PARAM_CLEANHTML);
-                // $sumbissionName = get_string('yoursubmission','peerreview');
-                $DB->insert_record('peerreview_submissions', $newsubmission);
+                $newsubmission = $DB->get_record('peerreview_submissions', ['peerreview' => $peerreview->id, 'userid' => $userid]);
+                if ($newsubmission == false) {
+                    $newsubmission = prepare_new_submission($peerreview->id, $userid);
+                    $newsubmission->onlinetext = format_text($formdata->onlinetext['text'], PARAM_CLEANHTML);
+                    $DB->insert_record('peerreview_submissions', $newsubmission);
+                } else {
+                    $newsubmission->onlinetext = format_text($formdata->onlinetext['text'], PARAM_CLEANHTML);
+                    $DB->update_record('peerreview_submissions', $newsubmission);
+                }
+
+
 
                 // TODO fix logging
                 // add_to_log($course->id, 'peerreview', 'upload', 'view.php?id='.$cmid, 'Peer review submission uploaded', $cmid, $userid);
@@ -103,9 +112,9 @@ if (isopen($peerreview)) {
                     if($providedExtension == $extension) {
 
                         // Save the submission file
-                        $submission = get_submission($peerreview->id, $USER->id, true); //create new submission if needed
+                        $submission = get_submission($peerreview->id, $userid, true); //create new submission if needed
                         // $fs->delete_area_files($this->context->id, 'mod_assignment', 'submission', $submission->id);
-                        $file = $mform->save_stored_file('peerreview_file', $context->id, 'mod_peerreview', 'submission', $submission->id, '/', $newfilename);
+                        $file = $mform->save_stored_file('peerreview_file', $context->id, 'mod_peerreview', 'submission', $submission->id, '/', $newfilename, true);
                         $newsubmission = $submission;
                         $sumbissionName = $newfilename;
                         $newsubmission->numfiles = 1;
@@ -127,7 +136,7 @@ if (isopen($peerreview)) {
                         // events_trigger('assessable_file_uploaded', $eventdata);
                     }
                     else {
-                        echo $OUTPUT->notification(get_string("incorrectfileextension","peerreview",$extension));
+                        echo $OUTPUT->notification(get_string("incorrectfileextension","peerreview",$extension), 'redirectmessage');
                         echo $OUTPUT->continue_button($continueurl);
                     }
                 }

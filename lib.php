@@ -53,7 +53,7 @@ function peerreview_supports($feature) {
         case FEATURE_GROUPMEMBERSONLY:        return false;
         case FEATURE_MOD_INTRO:               return true;
         case FEATURE_COMPLETION_TRACKS_VIEWS: return true;
-//        case FEATURE_COMPLETION_HAS_RULES:    return true;
+        case FEATURE_COMPLETION_HAS_RULES:    return true;
         case FEATURE_GRADE_HAS_GRADE:         return true;
         case FEATURE_GRADE_OUTCOMES:          return false;
         case FEATURE_BACKUP_MOODLE2:          return false;
@@ -76,15 +76,41 @@ function peerreview_supports($feature) {
  * @return int The id of the newly inserted peerreview record
  */
 function peerreview_add_instance(stdClass $peerreview, mod_peerreview_mod_form $mform = null) {
-    global $DB;
+    global $DB,$CFG;
 
+    require_once($CFG->dirroot.'/calendar/lib.php');
     $peerreview->timecreated = time();
 
-    # You may have to add extra stuff in here #
+    # You may have to add extra stuff in here
 
-    // TODO add calendar event.
+    $ret = $DB->insert_record('peerreview', $peerreview);
 
-    return $DB->insert_record('peerreview', $peerreview);
+    //MMPR-6
+    //add grade item
+    if ($ret){
+        $peerreview->id = $ret;
+        peerreview_grade_item_update($peerreview);
+    }
+
+    //creates events in the calendar
+    $event = new stdClass();
+    $event->type        = CALENDAR_EVENT_TYPE_ACTION;
+    $event->name        = $peerreview->name;
+    $event->description = format_module_intro('peerreview', $peerreview, $peerreview->coursemodule);
+    $event->courseid    = $peerreview->course;
+    $event->groupid     = 0;
+    $event->userid      = 0;
+    $event->modulename  = 'peerreview';
+    $event->instance    = $ret;
+    $event->eventtype   = PR_EVENT_TYPE_DO;
+    $event->timestart   = $peerreview->duedate;
+    $event->timesort    = $peerreview->duedate;
+    $event->timeduration = 0;
+
+    calendar_event::create($event);
+
+
+    return $ret;
 }
 
 /**
@@ -262,7 +288,7 @@ function peerreview_scale_used_anywhere($scaleid) {
  * @param stdClass $peerreview instance object with extra cmidnumber and modname property
  * @return void
  */
-function peerreview_grade_item_update(stdClass $peerreview) {
+function peerreview_grade_item_update(stdClass $peerreview,$grades=NULL) {
     global $CFG;
     require_once($CFG->libdir.'/gradelib.php');
 
@@ -272,7 +298,8 @@ function peerreview_grade_item_update(stdClass $peerreview) {
     $item['grademax']  = $peerreview->grade;
     $item['grademin']  = 0;
 
-    grade_update('mod/peerreview', $peerreview->course, 'mod', 'peerreview', $peerreview->id, 0, null, $item);
+    grade_update('mod/peerreview', $peerreview->course, 'mod', 'peerreview', $peerreview->id, 0, $grades, $item);
+
 }
 
 /**
@@ -284,15 +311,28 @@ function peerreview_grade_item_update(stdClass $peerreview) {
  * @param int $userid update grade of specific user only, 0 means all participants
  * @return void
  */
-function peerreview_update_grades(stdClass $peerreview, $userid = 0) {
-    global $CFG, $DB;
+function peerreview_update_grades(stdClass $peerreview, $userid = 0,$nullifnone=true) {
+     global $CFG, $DB;
     require_once($CFG->libdir.'/gradelib.php');
 
     /** @example */
-    $grades = array(); // populate array of grade objects indexed by userid
+   // $grades = array(); // populate array of grade objects indexed by userid
+     //mod MMPR-6
+     $grade = new stdClass();
+     $grade->userid   = $userid;
+     $grade->rawgrade = $peerreview->grade;
+     $grade->finalgrade = $peerreview->grade;
 
-    grade_update('mod/peerreview', $peerreview->course, 'mod', 'peerreview', $peerreview->id, 0, $grades);
+    //passo anche item grade
+    $item = array();
+    $item['itemname'] = clean_param($peerreview->name, PARAM_NOTAGS);
+    $item['gradetype'] = GRADE_TYPE_VALUE;
+    $item['grademax']  = 100;
+    $item['grademin']  = 0;
+ 
+    grade_update('mod/peerreview', $peerreview->course, 'mod', 'peerreview', $peerreview->id, 0, $grade,$item);
 }
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // File API                                                                   //
@@ -369,10 +409,11 @@ function peerreview_pluginfile($course, $cm, $context, $filearea, array $args, $
 
     // Gather the file information
     $submissionid = (int)array_shift($args);
-    $fileid = (int)array_shift($args);
-    $filename = array_shift($args);
     $fs = get_file_storage();
-    if (!$file = $fs->get_file_by_id($fileid) or $file->is_directory()) {
+    $files = $fs->get_area_files($context->id, 'mod_peerreview', 'submission', $submissionid, "timemodified", false);
+    $file = array_pop($files);
+    $filename = $file->get_filename();
+    if ($file->is_directory()) {
         return false;
     }
     $options['filename'] = $filename;
@@ -387,20 +428,18 @@ function peerreview_pluginfile($course, $cm, $context, $filearea, array $args, $
     // If the file is one the user is supposed to review, send that.
     $review = get_next_review($peerreview);
     $submission = get_submission($peerreview->id, $review->reviewee);
-    if($submission->id == $submissionid && ($review->reviewer == $USER->id || has_capability('peerreview:grade', $context))) {
 
-        // Set the file status to downloaded.
-        if($review->reviewer == $USER->id) {
-            $review->downloaded = 1;
-            $review->timedownloaded = time();
-            $review->timemodified = $review->timedownloaded;
-            $DB->update_record('peerreview_review', $review);
-        }
-
-        send_stored_file($file, 0, 0, true, $options);
+    // Set the file status to downloaded.
+    if($review->reviewer == $USER->id) {
+        $review->downloaded = 1;
+        $review->timedownloaded = time();
+        $review->timemodified = $review->timedownloaded;
+        $DB->update_record('peerreview_review', $review);
     }
 
-    send_file_not_found();
+    send_stored_file($file, 0, 0, true, $options);
+
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -431,3 +470,277 @@ function peerreview_extend_navigation(navigation_node $navref, stdclass $course,
  */
 function peerreview_extend_settings_navigation(settings_navigation $settingsnav, navigation_node $peerreviewnode=null) {
 }
+
+//DEPRECATEDfrom 3.3
+function peerreview_print_overview($courses, &$htmlarray) {
+    global $USER, $CFG, $DB;
+    require_once($CFG->dirroot.'/mod/peerreview/locallib.php');
+    if (empty($courses) || !is_array($courses) || count($courses) == 0) {
+        return array();
+    }
+
+    if (!$peerreviews = get_all_instances_in_courses('peerreview', $courses)) {
+        return;
+    }
+
+    $strpeerreview = get_string('modulename', 'peerreview');
+    foreach ($peerreviews as $peerreview) {
+        $cmid = $peerreview->coursemodule;
+        $cm         = get_coursemodule_from_id('peerreview', $cmid, 0, false, MUST_EXIST);
+        $context = context_module::instance($cm->id);
+        $cangrade = has_capability('mod/peerreview:grade', $context);
+        $criteriaList = $DB->get_records_list('peerreview_criteria','peerreview',array($peerreview->id),'ordernumber');
+        $numberOfCriteria = 0;
+        if(is_array($criteriaList)) {
+            $criteriaList = array_values($criteriaList);
+            $numberOfCriteria = count($criteriaList);
+        }
+        if ($cangrade){
+            $submissions = $DB->get_records('peerreview_submissions', array('peerreview'=>$peerreview->id, 'grade'=> '-1'));
+            if (count($submissions) > 0) {
+                // MUST CHECK
+                $str = '<div class="peerreview overview"><div class="name">'.
+                    $strpeerreview.': <a '.($peerreview->visible ? '' : ' class="dimmed"').
+                    ' href="'.$CFG->wwwroot.'/mod/peerreview/view.php?id='.$peerreview->coursemodule.'">'.
+                    $peerreview->name.'</a></div></div>';
+
+                if (empty($htmlarray[$peerreview->course]['peerreview'])) {
+                    $htmlarray[$peerreview->course]['peerreview'] = $str;
+                } else {
+                    $htmlarray[$peerreview->course]['peerreview'] .= $str;
+                }
+            }
+
+        } else {
+            $submission = get_submission($peerreview->id);
+            $reviewsAllocated = get_reviews_allocated_to_student($peerreview->id, $USER->id);
+            $numberOfReviewsAllocated  = 0;
+            $numberOfReviewsDownloaded = 0;
+            $numberOfReviewsCompleted  = 0;
+            if(is_array($reviewsAllocated)) {
+                $numberOfReviewsAllocated = count($reviewsAllocated);
+                foreach($reviewsAllocated as $review) {
+                    if($review->downloaded == 1) {
+                        $numberOfReviewsDownloaded++;
+                    }
+                    if($review->completed == 1) {
+                        $numberOfReviewsCompleted++;
+                    }
+                }
+            }
+            if(!$submission && isopen($peerreview)) {
+                // MUST SUBMIT
+                $str = '<div class="peerreview overview"><div class="name">'.
+                    $strpeerreview.': <a '.($peerreview->visible ? '' : ' class="dimmed"').
+                    ' href="'.$CFG->wwwroot.'/mod/peerreview/view.php?id='.$peerreview->coursemodule.'">'.
+                    $peerreview->name.'</a></div>';
+
+                if (empty($htmlarray[$peerreview->course]['peerreview'])) {
+                    $htmlarray[$peerreview->course]['peerreview'] = $str;
+                } else {
+                    $htmlarray[$peerreview->course]['peerreview'] .= $str;
+                }
+            } else if ($numberOfReviewsCompleted < 2 && $numberOfReviewsAllocated > 0) {
+                // MUST REVIEW
+                $str = '<div class="peerreview overview"><div class="name">'.
+                    $strpeerreview.': <a '.($peerreview->visible ? '' : ' class="dimmed"').
+                    ' href="'.$CFG->wwwroot.'/mod/peerreview/view.php?id='.$peerreview->coursemodule.'">'.
+                    $peerreview->name.'</a></div>';
+
+                if (empty($htmlarray[$peerreview->course]['peerreview'])) {
+                    $htmlarray[$peerreview->course]['peerreview'] = $str;
+                } else {
+                    $htmlarray[$peerreview->course]['peerreview'] .= $str;
+                }
+            }
+        }
+    }
+}
+
+
+//MOD MMPR-6
+//return true or false or type depending from the completion status.
+//completion statustrue + submitted + reviews done
+function peerreview_get_completion_state($course,$cm,$userid,$type){
+    global $CFG, $DB;
+
+    //get peerreview
+    if (!$peerreview = $DB->get_record('peerreview', array('id' => $cm->instance))) {
+        return false;
+    }
+
+    require_once ("locallib.php");
+    //se il flag è up
+    if ($peerreview->completionsubmit) {
+
+      //  return checkActionTodo($peerreview,$isTodo,$msg,$itemcount);
+
+        //get peeerreviw
+        $submission = get_submission($peerreview->id);
+        //get review allcoated for the user
+        $reviewsAllocated = get_reviews_allocated_to_student($peerreview->id, $userid);
+        //init counter
+        $numberOfReviewsAllocated  = 0;
+        $numberOfReviewsDownloaded = 0;
+        $numberOfReviewsCompleted  = 0;
+        //count the review alocated, completed etc..
+        if(is_array($reviewsAllocated)) {
+            $numberOfReviewsAllocated = count($reviewsAllocated);
+            foreach($reviewsAllocated as $review) {
+                if($review->downloaded == 1) {
+                    $numberOfReviewsDownloaded++;
+                }
+                if($review->completed == 1) {
+                    $numberOfReviewsCompleted++;
+                }
+            }
+        }
+        if(!$submission && isopen($peerreview)) {
+            // MUST SUBMIT
+            return false;
+        } else if ($numberOfReviewsCompleted < 2 && $numberOfReviewsAllocated > 0) {
+            // MUST REVIEW
+            return false;
+        }else{
+            //COMPLETED
+            return true;
+        }
+    } else {
+        // Completion option is not enabled so just return $type.
+        return $type;
+    }
+
+}
+
+
+/**
+ * Callback which returns human-readable strings describing the active completion custom rules for the module instance.
+ *
+ * @param cm_info|stdClass $cm object with fields ->completion and ->customdata['customcompletionrules']
+ * @return array $descriptions the array of descriptions for the custom rules.
+ */
+function mod_peerreview_get_completion_active_rule_descriptions($cm) {
+    global $DB;
+    //get the peerreview
+    $peerreview = $DB->get_record('peerreview',['id' => $cm->instance]);
+
+    //if completionsubmit is enabled return the description
+    if ($peerreview->completionsubmit==1){
+        $descriptions[] = get_string('completionsubmit', 'peerreview');
+        return $descriptions;
+    }
+    return [];
+    
+}
+
+//check the visibility of the event in the dashboard
+function mod_peerreview_core_calendar_is_event_visible(calendar_event $event) {
+    global $USER, $DB; $USER;
+
+    if ($event->modulename != 'peerreview'){
+        return false;
+    }
+    //gets peerreview
+    $peerreview = $DB->get_record('peerreview',['id' => $event->instance]);
+    checkActionTodo($peerreview,$isTodo,$msglink,$itemcount);
+    return $isTodo;
+}
+
+//builds the div to showin the dashboard.
+function mod_peerreview_core_calendar_provide_event_action(calendar_event $event,
+                                                      \core_calendar\action_factory $factory) {
+    global $USER, $DB; $USER;
+
+    if ($event->modulename != 'peerreview'){
+        return false;
+    }
+    //gets peerreview
+    $peerreview = $DB->get_record('peerreview',['id' => $event->instance]);
+
+    $msglink= 'todo';
+    $itemcount=1;
+    checkActionTodo($peerreview,$isTodo,$msglink,$itemcount);
+    $isopen = isopen($peerreview);
+    $cm = get_fast_modinfo($event->courseid)->instances['peerreview'][$event->instance];
+    //creates the entry on dashboard
+    return $factory->create_instance(
+        $msglink,
+        new \moodle_url('/mod/peerreview/view.php', array('id' => $cm->id)),
+        $itemcount,
+        $isopen
+    );
+}
+
+/**
+ * Callback function that determines whether an action event should be showing its item count
+ * based on the event type and the item count.
+ *
+ * @param calendar_event $event The calendar event.
+ * @param int $itemcount The item count associated with the action event.
+ * @return bool
+ */
+function mod_peerreview_core_calendar_event_action_shows_item_count(calendar_event $event, $itemcount = 0) {
+    // List of event types where the action event's item count should be shown.
+    $eventtypesshowingitemcount = [
+        PR_EVENT_TYPE_DO
+    ];
+    // For mod_assign, item count should be shown if the event type is 'PR_EVENT_TYPE_DO' and there is one or more item count.
+    return in_array($event->eventtype, $eventtypesshowingitemcount) && $itemcount > 0;
+}
+
+//auxiliar function. Check the action to do for the event caldendar, for the user
+function checkActionTodo($peerreview, &$isTodo, &$msgAction,&$itemcount){
+    global  $DB,$USER;
+
+    require_once ("locallib.php");
+
+    $isTodo=false;
+    //check on action to perform
+    $cm = get_coursemodule_from_instance('peerreview', $peerreview->id);
+    $context = context_module::instance($cm->id);
+    $cangrade = has_capability('mod/peerreview:grade', $context);
+    if ($cangrade){
+        $submissions = $DB->get_records('peerreview_submissions', array('peerreview'=>$peerreview->id, 'grade'=> '-1'));
+        $itemcount = count($submissions);
+        if ( $itemcount > 0) {
+            // MUST CHECK
+            $isTodo=true;
+            $msgAction = get_string('mustcheck', 'peerreview');
+        }
+
+    } else {
+        $submission = get_submission($peerreview->id);
+        $reviewsAllocated = get_reviews_allocated_to_student($peerreview->id, $USER->id);
+        $numberOfReviewsAllocated  = 0;
+        $numberOfReviewsDownloaded = 0;
+        $numberOfReviewsCompleted  = 0;
+        if(is_array($reviewsAllocated)) {
+            $numberOfReviewsAllocated = count($reviewsAllocated);
+            foreach($reviewsAllocated as $review) {
+                if($review->downloaded == 1) {
+                    $numberOfReviewsDownloaded++;
+                }
+                if($review->completed == 1) {
+                    $numberOfReviewsCompleted++;
+                }
+            }
+        }
+        if(!$submission ) {
+            // MUST SUBMIT
+            $isTodo=true;
+            $itemcount =1;
+            $msgAction = get_string('mustsubmit', 'peerreview');
+            return true;
+        } else if ($numberOfReviewsCompleted < 2 && $numberOfReviewsAllocated > 0) {
+            // MUST REVIEW
+            $isTodo=true;
+            $itemcount=2-$numberOfReviewsCompleted;
+            $msgAction = get_string('mustreview', 'peerreview');
+            return true;
+        }
+
+        return false;
+    }
+}
+
+

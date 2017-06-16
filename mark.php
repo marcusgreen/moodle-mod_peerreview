@@ -173,7 +173,7 @@ echo $OUTPUT->container_end();
 
 // Show submitted document
 if (isset($peerreview->submissionformat) && $peerreview->submissionformat == SUBMIT_DOCUMENT) {
-    echo submission_link($peerreview,$submission->id,$context->id,false);
+    echo submission_link($peerreview,$submission->id,$context->id,false,$cm->id,true);
 }
 // Show submission for online text
 if (isset($peerreview->submissionformat) && $peerreview->submissionformat == ONLINE_TEXT) {
@@ -185,6 +185,7 @@ echo $OUTPUT->container_end();
 // Marking form
 echo HTML_WRITER::start_tag('form', array('action' => 'submissions.php', 'method' => 'post', 'id' => 'peerreviewform'));
 echo HTML_WRITER::empty_tag('input', array('type' => 'hidden', 'name' => 'id', 'value' => $cm->id));
+echo HTML_WRITER::empty_tag('input', array('type' => 'hidden', 'name' => 'peerreviewid', 'value' => $peerreviewid));
 echo HTML_WRITER::empty_tag('input', array('type' => 'hidden', 'name' => 'review', 'value' => $numberOfReviewsOfThisStudent+1));
 echo HTML_WRITER::empty_tag('input', array('type' => 'hidden', 'name' => 'userid', 'value' => $userid));
 echo HTML_WRITER::empty_tag('input', array('type' => 'hidden', 'name' => 'timeLoaded', 'value' => time()));
@@ -203,7 +204,7 @@ for($i=0; $i<$numberOfReviewsOfThisStudent; $i++) {
     $timeTakenReviewing = $reviews[$i]->timecompleted - $reviews[$i]->timedownloaded;
     $commentLength = strlen($reviews[$i]->reviewcomment);
     if($reviews[$i]->flagged) {
-        echo '<img src="'.$CFG->wwwroot.'/mod/assignment/type/peerreview/pix/flagRed.gif">';
+        echo '<img src="'.$CFG->wwwroot.'/mod/peerreview/pix/flagRed.gif">';
     }
     else if(
         $reviews[$i]->teacherreview==0 &&
@@ -219,15 +220,18 @@ echo get_string('newreview','peerreview');
 echo '</span>&nbsp;(';
 echo $OUTPUT->help_icon('whatdostudentssee', 'peerreview', true);
 echo ')</td></tr>';
-$options = new object;
+$options = new stdClass();
 $options->para = false;
 for($i=0; $i<$numberOfCriteria; $i++) {
     echo '<tr class="criteriaDisplayRow">';
     for($j=0; $j<$numberOfReviewsOfThisStudent; $j++) {
-        echo '<td class="criteriaCheckboxColumn" style="background:'.$REVIEW_COLOURS[$j%$NUMBER_OF_COLOURS].'"><input type="checkbox" name="checked'.$reviews[$j]->review.'crit'.$i.'" '.($reviews[$j]->{'checked'.$i}==1?' checked':'').' onchange="M.peerreview.allowSavePrev();" /></td>';
+        $disabled = $reviews[$j]->teacherreview==1 ? 'disabled' : '';
+        echo '<td class="criteriaCheckboxColumn" style="background:'.$REVIEW_COLOURS[$j%$NUMBER_OF_COLOURS].'"><input type="checkbox" name="checked'.$reviews[$j]->review.'crit'.$i.'" '.
+            ($reviews[$j]->{'checked'.$i}==1?' checked':'').' onchange="M.peerreview.allowSavePrev();" ' . $disabled . '/></td>';
     }
     echo '<td class="criteriaCheckboxColumn"><input type="checkbox" name="newChecked'.$i.'" id="newChecked'.$i.'" onchange="M.peerreview.allowSaveNew();" /></td>';
-    echo '<td class="criteriaDisplayColumn"><label for="newChecked'.$i.'">'.format_text($criteriaList[$i]->textshownatreview!=''?$criteriaList[$i]->textshownatreview:$criteriaList[$i]->textshownwithinstructions,FORMAT_MOODLE,$options).'</label></td>';
+    echo '<td class="criteriaDisplayColumn"><label for="newChecked'.$i.'">'.
+        format_text($criteriaList[$i]->textshownatreview!=''?$criteriaList[$i]->textshownatreview:$criteriaList[$i]->textshownwithinstructions,FORMAT_MOODLE,$options).'</label></td>';
     echo '</tr>';
 }
 echo '<tr>';
@@ -236,29 +240,57 @@ for($i=0; $i<$numberOfReviewsOfThisStudent; $i++) {
 
 }
 echo '<td colspan="2" style="padding:5px;">';
-echo '<table width="100%" cellspacing="2">';
-echo '<tr>';
-echo '<td style="vertical-align:top;" width="50%">'.get_string('comment','peerreview').'<br /><textarea name="newComment" rows="10" style="width:99%;" onkeypress="M.peerreview.allowSaveNew();"></textarea></td>';
-echo '<td style="vertical-align:top;">'.get_string('savedcomments','peerreview').' ';
+echo '<table width="100%" cellspacing="3">';
+
+echo '</tr>';
+echo '<td width="50%">'.get_string('comment','peerreview');
+echo '</td>';
+echo '<td width="50%">'.get_string('savedcomments','peerreview');
 echo $OUTPUT->help_icon('savedcomments', 'peerreview', false);
-echo '<br /><textarea rows="10" style="width:99%;" name="savedcomments" >'.($peerreview->savedcomments?format_string(stripslashes($peerreview->savedcomments)):'').'</textarea></td>';
+echo '<button style="height:25px" id="savedcomments" name="submit" value="savedcomments">' . get_string('savecomments','peerreview') . '</button>';
+echo '</td>';
+echo '</tr>';
+
+echo '</tr>';
+echo '<td width="50%"><textarea name="newComment" rows="10" style="width:99%;" onkeypress="M.peerreview.allowSaveNew();"></textarea>';
+
+echo '</td>';
+echo '<td  width="50%"><textarea rows="10" style="width:99%; " name="savedcomments" >'.($peerreview->savedcomments?format_string(stripslashes($peerreview->savedcomments)):'').'</textarea>';
+echo '</td>';
+echo '</tr>';
+echo '</table>';
+
+/*
+
+echo '<tr>';
+echo '<td   width="50%">'.get_string('comment','peerreview').
+    '<br /><br /><textarea name="newComment" rows="10" style="width:99%;" onkeypress="M.peerreview.allowSaveNew();"></textarea></td>';
+echo '<td >'.get_string('savedcomments','peerreview').' ';
+echo $OUTPUT->help_icon('savedcomments', 'peerreview', false);
+echo '<button style="height:25px" id="savedcomments" name="submit" value="savedcomments">' . get_string('savecomments','peerreview') . '</button>';
+ //echo '(<a href="#null" onclick="savedComments()" />' . get_string('savecomments','peerreview'). '</a>)';
+echo '<br /><br /><textarea rows="10" style="width:99%; " name="savedcomments" >'.($peerreview->savedcomments?format_string(stripslashes($peerreview->savedcomments)):'').'</textarea></td>';
 echo '</tr>';
 echo '</table>';
 echo '</td>';
 echo '</tr>';
+*/
 $studentCount = 1;
 for($i=0; $i<$numberOfReviewsOfThisStudent; $i++) {
     echo '<tr>';
     for($j=0; $j<$numberOfReviewsOfThisStudent; $j++) {
-        echo '<td class="criteriaCheckboxColumn" style="background:'.($j>$numberOfReviewsOfThisStudent-$i-1?$REVIEW_COLOURS[($numberOfReviewsOfThisStudent-$i-1)%$NUMBER_OF_COLOURS]:$REVIEW_COLOURS[$j%$NUMBER_OF_COLOURS]).';">&nbsp;</td>';
+        echo '<td class="criteriaCheckboxColumn" style="background:'.
+            ($j>$numberOfReviewsOfThisStudent-$i-1?$REVIEW_COLOURS[($numberOfReviewsOfThisStudent-$i-1)%$NUMBER_OF_COLOURS]:$REVIEW_COLOURS[$j%$NUMBER_OF_COLOURS]).';">&nbsp;</td>';
 
     }
     echo '<td colspan="2" class="reviewCommentRow" style="background:'.$REVIEW_COLOURS[($numberOfReviewsOfThisStudent-$i-1)%$NUMBER_OF_COLOURS].';">';
 
     echo '<table width="99%" cellpadding="0" cellspacing="0" border="0" class="reviewCommentTable">';
     echo '<tr class="reviewDetailsRow">';
-    echo '<td><em>'.get_string('conductedby','peerreview').': '.$reviews[$numberOfReviewsOfThisStudent-$i-1]->firstname.' '.$reviews[$numberOfReviewsOfThisStudent-$i-1]->lastname.' ('.($reviews[$numberOfReviewsOfThisStudent-$i-1]->teacherreview==1?get_string('defaultcourseteacher'):get_string('defaultcoursestudent')).')</em></td>';
-    echo '<td class="reviewDateColumn"><em>';
+    echo '<td><em>'.get_string('conductedby','peerreview').': '.$reviews[$numberOfReviewsOfThisStudent-$i-1]->firstname.' '.
+        $reviews[$numberOfReviewsOfThisStudent-$i-1]->lastname.' ('.
+        ($reviews[$numberOfReviewsOfThisStudent-$i-1]->teacherreview==1?get_string('defaultcourseteacher'):get_string('defaultcoursestudent')).')</em></td>';
+    echo '<td width="50%"><em>';
     if($reviews[$numberOfReviewsOfThisStudent-$i-1]->teacherreview==0) {
         $timeTakenReviewing = $reviews[$numberOfReviewsOfThisStudent-$i-1]->timecompleted - $reviews[$numberOfReviewsOfThisStudent-$i-1]->timedownloaded;
         echo format_time($timeTakenReviewing);
@@ -275,10 +307,13 @@ for($i=0; $i<$numberOfReviewsOfThisStudent; $i++) {
     }
     echo userdate($reviews[$numberOfReviewsOfThisStudent-$i-1]->timemodified,get_string('strftimedatetime')).'</em></td>';
     echo '</tr>';
-    echo '<tr><td colspan="2"><textarea name="preExistingComment'.($reviews[$numberOfReviewsOfThisStudent-$i-1]->review).'" rows="3" class="commentTextBox" onkeypress="M.peerreview.allowSavePrev()" style="background:'.$REVIEW_COMMENT_COLOURS[($numberOfReviewsOfThisStudent-$i-1)%count($REVIEW_COMMENT_COLOURS)].';">'.format_string(stripslashes($reviews[$numberOfReviewsOfThisStudent-$i-1]->reviewcomment)).'</textarea></td></tr>';
+    echo '<tr><td  width="100%" colspan="3"><textarea name="preExistingComment'.($reviews[$numberOfReviewsOfThisStudent-$i-1]->review).
+        '" rows="3" class="commentTextBox" onkeypress="M.peerreview.allowSavePrev()" style="width:100%; background:'.$REVIEW_COMMENT_COLOURS[($numberOfReviewsOfThisStudent-$i-1)%count($REVIEW_COMMENT_COLOURS)].';">'.
+        format_string(stripslashes($reviews[$numberOfReviewsOfThisStudent-$i-1]->reviewcomment)).'</textarea></td></tr>';
 
     if($reviews[$numberOfReviewsOfThisStudent-$i-1]->flagged==1) {
-        echo '<tr class="reviewDetailsRow" style="color:#ff0000;"><td colspan="2"><em>'.get_string('flagged','peerreview').'&nbsp;<img src="'.$CFG->wwwroot.'/mod/assignment/type/peerreview/pix/flagRed.gif"></em></td></tr>';
+        echo '<tr class="reviewDetailsRow" style="color:#ff0000;"><td colspan="2"><em>'.get_string('flagged','peerreview').'&nbsp;<img src="'.$CFG->wwwroot.
+            '/mod/peerreview/pix/flagRed.gif"></em></td></tr>';
     }
     echo '</table>';
     echo '</td>';
@@ -289,25 +324,26 @@ echo '</table>';
 $lastmailinfo = get_user_preferences('assignment_mailinfo', 1) ? 'checked="checked"' : '';
 
 ///Print Buttons in Single View
-echo html_writer::container_start('buttons');
+echo $OUTPUT->container_start('buttons');
 echo '<div class="">';
 // echo '<input type="hidden" name="mailinfo" value="0" />';
 // echo '<input type="checkbox" id="mailinfo" name="mailinfo" value="1" '.$lastmailinfo.' /><label for="mailinfo">'.get_string('enableemailnotification','peerreview').'</label>';
+echo '<button name="cancel" value="cancel">' . get_string('cancel') . '</button>';
 if($numberOfReviewsOfThisStudent>0) {
-    echo '<input type="submit" id="savepreexistingonly" name="submit" value="'.get_string('savepreexistingonly','peerreview').'" onclick="M.peerreview.setSavePrevPR();" />';
+    echo '<button id="savepreexistingonly" name="submit" value="savepreexistingonly">' . get_string('savepreexistingonly','peerreview') . '</button>';
 }
-echo '<input type="submit" name="cancel" value="'.get_string('cancel').'" />';
-echo '<input type="submit" id="savenew" name="submit" value="'.get_string('savenew','peerreview').'" />';
+echo '<button id="savenew" name="submit" value="savenewonly">' . get_string('savenew','peerreview') . '</button>';
+if($numberOfReviewsOfThisStudent>0) {
+    echo '<button id="savenewandold" name="submit" value="savenewandold">' . get_string('savenewandold','peerreview') . '</button>';
+}
 
-//if there are more to be graded.
-// if ($nextid) {
-//     echo '<input type="submit" id="saveandnext" name="saveandnext" value="'.get_string('saveandnext','peerreview').'" onclick="M.peerreview.saveNextPR('.$userid.','.$nextid.');" />';
-//     echo '<input type="submit" name="next" value="'.get_string('next').'" onclick="M.peerreview.setNextPR('.$nextid.');" />';
-// }
+
+
 echo $OUTPUT->help_icon('moderationbuttons', 'peerreview', false);
 echo '</div>';
-
+echo $OUTPUT->container_end();
 // $PAGE->requires->js_init_call('M.peerreview.initModerationButtons',null,false,$this->jsmodule);
 
 echo html_writer::end_tag('form');
+
 echo $OUTPUT->footer();

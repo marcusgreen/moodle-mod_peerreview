@@ -27,11 +27,28 @@
 require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
 require_once($CFG->dirroot.'/mod/peerreview/locallib.php');
 
-$cmid = required_param('id', PARAM_INT);
+//mod may 2017. chekk if it have to come back, and get also the cmdid, it serves to redirect to submissions.php page
+$back='s';
+if (isset($_GET['back'])) {
+    $back = $_GET['back'];
+}
+
+$cmid=-1;
+if (isset($_GET['cmid'])) {
+    $cmid = $_GET['cmid'];
+}
+
+$cangrade=false;
+if (isset($_GET['cangrade'])) {
+    $cangrade = $_GET['cangrade'];
+}
+
+
+$contextid = required_param('contextid', PARAM_INT);
 $peerreviewid = required_param('peerreviewid', PARAM_INT);
-$cm = get_coursemodule_from_id('peerreview', $cmid, 0, false, MUST_EXIST);
-$course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
-$context = context_module::instance($cm->id);
+$courseid = $DB->get_record('peerreview', ['id' => $peerreviewid], 'course')->course;
+$course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
+$context = context_course::instance($courseid);
 if (! $peerreview = $DB->get_record("peerreview", array('id' => $peerreviewid))) {
     print_error('invalidid', 'peerreview');
 }
@@ -41,13 +58,13 @@ $submission = $DB->get_record('peerreview_submissions', array('id'=>$submissionI
 $user = $DB->get_record('user', array('id'=>$submission->userid));
 
 // Check user is logged in and capable of viewing the submission
-require_login($course->id, false, $cm);
+require_login($course->id, false);
 if($USER->id != $user->id) {
     require_capability('mod/peerreview:grade', $context);
 }
 
 // Set up the page
-$attributes = array('peerreviewid' => $peerreview->id, 'id' => $cm->id, 'submissionid'=>$submissionID);
+$attributes = array('peerreviewid' => $peerreview->id, 'contextid' => $contextid, 'submissionid'=>$submissionID);
 $PAGE->set_url('/mod/peerreview/viewOnlneText.php', $attributes);
 $PAGE->set_title(format_string($peerreview->name));
 $PAGE->set_heading(format_string($course->fullname));
@@ -56,5 +73,15 @@ echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('submission', 'peerreview').': '.fullname($user), 2, 'leftHeading');
 echo $OUTPUT->box_start();
 echo format_text(stripslashes($submission->onlinetext), PARAM_CLEAN);
+$continueattributes = array('n' => $peerreview->id, 'contextid' => $contextid, 'submissionid'=>$submissionID);
+
+//if back is submission back to tab Submission
+if ($back=='s' && $cangrade){
+    $continueurl = new moodle_url('/mod/peerreview/submissions.php', array('id' => $cmid , 'peerreviewid'=>$peerreview->id));
+}else{
+    $continueurl = new moodle_url('/mod/peerreview/view.php', $continueattributes);
+}
+
+echo $OUTPUT->continue_button($continueurl);
 echo $OUTPUT->box_end();
 echo $OUTPUT->footer();

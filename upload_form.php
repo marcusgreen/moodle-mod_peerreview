@@ -21,7 +21,7 @@ class mod_peerreview_edit_form extends moodleform {
         // visible elements
         $mform->addElement('editor', 'onlinetext', get_string('onlinesubmission', 'peerreview'), array('cols'=>100, 'rows'=>20));
         $mform->setType('onlinetext', PARAM_RAW); // to be cleaned before display
-
+        $mform->setDefault('onlinetext', 'ciao');
         // submit button
         if(array_key_exists('userid',$this->_customdata)) {
             $this->add_action_buttons(true, get_string('submit').'...');
@@ -66,7 +66,12 @@ class mod_peerrview_upload_form extends moodleform {
         //                                           'submission_file',
         //                                           $submissionid);
         // $mform->addElement('filemanager', 'peerreview_file', get_string('uploadafile'), null, $this->_customdata['options']);
-        $mform->addElement('filepicker', 'peerreview_file', get_string('uploadafile'), null, $this->_customdata['options']);
+        if (array_key_exists('accepted_types', $this->_customdata['options'])) {
+            $accepted_types = $this->_customdata['options']['accepted_types'];
+        } else {
+            $accepted_types = '';
+        }
+        $mform->addElement('filepicker', 'peerreview_file', get_string('uploadafile', 'peerreview', $accepted_types), null, $this->_customdata['options']);
         $mform->addRule('peerreview_file', get_string('uploadnofilefound'), 'required', null, 'client');
 
         // Submit button
