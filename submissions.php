@@ -206,7 +206,7 @@ $table->pagesize($perpage, count($users));
 // $offset = $page * $perpage;
 
 $strupdate = get_string('update');
-$strgrade  = get_string('grade');
+$strgrade  = get_string('grade', 'mod_peerreview');
 $grademenu = make_grades_menu($peerreview->grade);
 
 // Get the criteria

@@ -26,6 +26,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+$string['grade'] = 'Grade';
+
 // Required strings
 $string['modulename'] = 'Peer review';
 $string['modulename_help'] = 'Use the Peer review module to allow users to peer review other students\' submissions';
@@ -153,7 +155,7 @@ $string['totalmarksforgrade'] = 'Marks set as Grade';
 $string['difference'] = 'Difference';
 $string['saveanddisplay'] = 'Save and display';
 $string['criteriachangewarning'] = 'Warning: Reviews have already been completed. Changing criteria now could be dangerous.'; // Plural
-$string['mustentercriteria'] = 'You must now create criteria. Ensure criteria values add up to the activity grade value.'; 
+$string['mustentercriteria'] = 'You must now create criteria. Ensure criteria values add up to the activity grade value.';
 $string['marksdontaddup'] = 'Criteria + Reward &ne; Grade<br />';
 $string['criteriaupdated'] = 'Criteria updated';
 
