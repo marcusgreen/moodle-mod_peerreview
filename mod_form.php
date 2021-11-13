@@ -144,7 +144,7 @@ class mod_peerreview_mod_form extends moodleform_mod {
         for($i=100; $i>0; $i--) {
             $grades[$i] = $i;
         }
-        $mform->addElement('select', 'grade', get_string('grade'), $grades);
+        $mform->addElement('select', 'grade', get_string('grade', 'mod_peerreview'), $grades);
         $mform->setType('grade', PARAM_INT);
         $mform->setDefault('grade', 100);
 
