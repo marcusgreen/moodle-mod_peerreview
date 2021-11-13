@@ -182,7 +182,14 @@ if ($where = $table->get_sql_where() && !empty($where)) {
 else {
     $where = '';
 }
-$fields = user_picture::fields('u');
+
+$fields = \core_user\fields::get_picture_fields();
+// Prepend u (for user) to each field name.
+$fields = array_map(function($el) {
+    return 'u.'.$el;
+}, $fields);
+
+$fields = implode(",", $fields);
 $sql = "   SELECT $fields,s.id AS submissionid, s.grade,s.timecreated as timecreated, s.timemarked
              FROM {user} u
         LEFT JOIN {peerreview_submissions} s ON u.id=s.userid AND s.peerreview=$peerreview->id
@@ -224,7 +231,7 @@ if (($ausers = $DB->get_records_sql($sql.$sort,null,$table->get_page_start(), $t
             $timecreated = $fileLink.' '.userdate($auser->timecreated,get_string('strftimeintable','peerreview'));
             $url = new moodle_url('/mod/peerreview/resubmit.php', array('peerreviewid'=>$peerreview->id,'userid'=>$auser->id));
             $timecreated .= html_writer::link($url, '<br />('.get_string('resubmitlabel','peerreview').')');
-            
+
             // Reviews by student
             $numberOfReviewsByThisStudent = 0;
             $reviews = html_writer::start_tag('div', array('id'=>'re'.$auser->id));
@@ -232,7 +239,7 @@ if (($ausers = $DB->get_records_sql($sql.$sort,null,$table->get_page_start(), $t
             if($reviewsByThisStudent = $DB->get_records('peerreview_review', array('peerreview'=>$peerreview->id, 'reviewer'=>$auser->id, 'completed'=>'1'))) {
                 $numberOfReviewsByThisStudent = count($reviewsByThisStudent);
                 $reviewsByThisStudent = array_values($reviewsByThisStudent);
-                
+
                 for($i=0; $i<$numberOfReviewsByThisStudent; $i++) {
                     $params = array(
                         'id'=>'rev'.$reviewsByThisStudent[$i]->id,
@@ -261,10 +268,10 @@ if (($ausers = $DB->get_records_sql($sql.$sort,null,$table->get_page_start(), $t
                     $reviews .= html_writer::end_tag('div');
 
                 }
-              
+
             }
             $reviews .= html_writer::end_tag('div');
-            
+
             // Reviews of student
             // TODO get this once for all students
             $reviewsOfThisStudent = get_reviews_of_student($peerreview->id, $auser->id);
@@ -284,7 +291,7 @@ if (($ausers = $DB->get_records_sql($sql.$sort,null,$table->get_page_start(), $t
             // TODO get this once for all students
             $statusCode = get_status($reviewsOfThisStudent,$numberOfCriteria);
             $status = print_status($statusCode, true);
-            
+
             // Review button
             $params = array(
                 'id'=>'se'.$auser->id,
@@ -327,7 +334,7 @@ if (($ausers = $DB->get_records_sql($sql.$sort,null,$table->get_page_start(), $t
                 $grade = get_string('notset','peerreview');
             }
         }
-        
+
         // No submission made yet
         else {
             $timecreated   = html_writer::tag('div', '&nbsp;', array('id'=>'tt'));
