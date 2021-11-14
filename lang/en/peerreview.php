@@ -80,12 +80,7 @@ $string['value'] = 'Value';
 $string['peerreview:submit'] = 'Submit a Peer review activity';
 // Criteria page strings
 $string['criteriawriting'] = 'Writing criteria';
-$string['criteriawriting_help'] = '<BR><BR><BR><BR><BR><BR><BR><BR><BR><BR>
-<BR><BR><BR><BR><BR><BR><BR><BR><BR><BR>
-<BR><BR><BR><BR><BR><BR><BR><BR><BR><BR>
-<BR><BR><BR><BR><BR><BR><BR><BR><BR><BR>
-<BR><BR><BR><BR><BR><BR>BR><BR><BR><BR>
-<BR><BR><BR><BR><BR><BR>BR>
+$string['criteriawriting_help'] = '
 <p><em>Well written criteria are the key to a successful Peer review activity.</em></p>
 <p><strong>Criteria should be...</strong></p>
 <ul>
