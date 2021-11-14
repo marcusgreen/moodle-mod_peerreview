@@ -4,7 +4,7 @@ Allows students to submit documents then review the work of other students. It c
 ### To install
 Place the files in diectory
 
-````moodle\mod\peerreview
+````moodle\mod\peerreview ````
 
 Where moodle is webroot for your install.
 
