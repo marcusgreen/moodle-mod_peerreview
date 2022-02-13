@@ -12,3 +12,5 @@ Go to Site Administration/Notifications
 
 Originally researched and developed by Michael de Raadt.
 https://github.com/deraadt/moodle-mod_peerreview
+
+https://moodle.org/mod/forum/discuss.php?d=391780
