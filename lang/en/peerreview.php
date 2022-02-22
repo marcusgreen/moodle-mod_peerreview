@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-
 /**
  * English strings for peerreviews.
  *
@@ -28,18 +27,18 @@ defined('MOODLE_INTERNAL') || die();
 
 $string['grade'] = 'Grade';
 
-// Required strings
+// Required strings.
 $string['modulename'] = 'Peer review';
 $string['modulename_help'] = 'Use the Peer review module to allow users to peer review other students\' submissions';
 $string['modulenameplural'] = 'Peer review activities';
 $string['pluginadministration'] = 'Peer review administration';
 $string['pluginname'] = 'Peer review';
 
-// Headings
+// Headings.
 $string['criteria'] = 'Criteria';
 $string['submissions'] = 'Submissions';
 
-// Edit form strings
+// Edit form strings.
 $string['allowsubmissionsfromdate'] = 'Allow submissions from';
 $string['allowsubmissionsfromdate_help'] = 'If enabled, students will not be able to submit before this date. If disabled, students will be able to start submitting right away.';
 $string['cutoffdate'] = 'Cut-off date';
@@ -65,20 +64,20 @@ $string['valueofreview_help'] = '
 Normally each review would be rewarded with 10% of the total grade, with the remaining marks awarded for meeting the criteria.</p>
 ';
 
-// Edit form validation strings
+// Edit form validation strings.
 $string['cutoffdatevalidation'] = 'Cut-off date must be after the due date.';
 $string['cutoffdatefromdatevalidation'] = 'Cut-off date must be after the allow submissions from date.';
 $string['duedatevalidation'] = 'Due date must be after the allow submissions from date.';
 $string['rewardvalidation'] = 'As students complete two reviews, the reward for each cannot exceed half of the total grade.';
 
-// Capability strings
+// Capability strings.
 $string['peerreview:addinstance'] = 'Add a Peer review activity';
 $string['peerreview:grade'] = 'Grade a Peer review activity';
 $string['peerreview:revealidentities'] = 'See the identity of anonymous submitters and reviewers';
 $string['peerreview:view'] = 'View a Peer review activity';
 $string['value'] = 'Value';
 $string['peerreview:submit'] = 'Submit a Peer review activity';
-// Criteria page strings
+// Criteria page strings.
 $string['criteriawriting'] = 'Writing criteria';
 $string['criteriawriting_help'] = '
 <p><em>Well written criteria are the key to a successful Peer review activity.</em></p>
@@ -126,7 +125,7 @@ Students should be able to evaluate the work of another student, even if they th
     </tr>
 </table>
 ';
-$string['criterion'] = 'Criterion'; // Singular
+$string['criterion'] = 'Criterion'; // Singular.
 $string['citerionatreview'] = 'Shown at review (optional)';
 $string['citerionwithdescription'] = 'Shown with description';
 $string['valueofcriterion'] = 'Value of this criterion';
@@ -149,12 +148,12 @@ $string['totalmarksabove'] = 'Sum of marks above';
 $string['totalmarksforgrade'] = 'Marks set as Grade';
 $string['difference'] = 'Difference';
 $string['saveanddisplay'] = 'Save and display';
-$string['criteriachangewarning'] = 'Warning: Reviews have already been completed. Changing criteria now could be dangerous.'; // Plural
+$string['criteriachangewarning'] = 'Warning: Reviews have already been completed. Changing criteria now could be dangerous.'; // Plural.
 $string['mustentercriteria'] = 'You must now create criteria. Ensure criteria values add up to the activity grade value.';
 $string['marksdontaddup'] = 'Criteria + Reward &ne; Grade<br />';
 $string['criteriaupdated'] = 'Criteria updated';
 
-// View page strings
+// View page strings.
 $string['setcriteria'] = 'Set Criteria';
 $string['criteriaaftersubmission'] = 'Criteria used for reviewing and afterwards';
 $string['criteriabeforesubmission'] = 'Criteria shown to students before submission';
@@ -223,7 +222,7 @@ $string['reviewsofyoursubmission'] = 'Reviews of Your Submission';
 $string['conductedby'] = 'Conducted by';
 $string['noreviews'] = 'No reviews have been made of your submission yet.';
 
-// Upload form
+// Upload form.
 $string['submituploadedfile'] = 'Submit Uploaded File...';
 $string['singleuploadwarning'] = 'Warning: You can only submit once.';
 $string['singleuploadquestion'] = 'Are you sure you want to submit? <BR> You can only submit once';
@@ -238,15 +237,15 @@ $string['reviewsallocatedsubject'] = 'You can now begin reviews.';
 $string['reviewsallocated'] = 'Reviews have been allocated. You may now continue to complete reviews.';
 $string['reviewsallocatedlinktext'] = 'Click here to begin reviews';
 
-// Flagging reviews
+// Flagging reviews.
 $string['reviewunflagged'] = 'Review un-flagged';
 $string['reviewflagged'] = 'Review flagged';
 
-// Reviewingbenefitsofpeerreview
+// Reviewingbenefitsofpeerreview.
 $string['getthedocument'] = 'Step 1. <em>Save</em> the document then open it';
 $string['reviewdocument'] = 'Step 2. Review the submission';
 
-// Submissions page
+// Submissions page.
 $string['reviewallocation'] = 'How are reviews allocated?';
 $string['reviewallocation_help'] = '
 <br><br><br>
@@ -375,7 +374,7 @@ $string['numberofstudentswarning'] = 'Warning: To use a Peer Review activity, th
 $string['quickgrade'] = 'Quick grading';
 $string['quickgrade_help'] = 'Quick grading allows you to manually set marks for submissions. Normally marks should be suggested on the basis of reviews, so you should not need to set marks manually, except in special circumstances.';
 
-// Marking
+// Marking.
 $string['early'] = '{$a} early';
 $string['late'] = '{$a} late';
 $string['moderations'] = 'Moderation Count';
@@ -457,7 +456,7 @@ $string['timeremaining'] = 'Remaining';
 $string['uploadafile'] = 'Upload a {$a} file';
 $string['analysis'] = 'Analysis';
 $string['benefitsofpeerreview'] = 'Benefits of Peer Review Assignments';
-$string['benefitsofpeerreview_help'] =  '<BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR>
+$string['benefitsofpeerreview_help'] = '<BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR><BR>
 <BR><BR><BR><BR><BR><BR><BR><BR><BR><BR>
 <h5>Benefits of Peer Review Assignments</h5>
 <p>Peer Review assignments can deliver benefits to both teachers and students.</p>
