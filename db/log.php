@@ -28,10 +28,10 @@ defined('MOODLE_INTERNAL') || die();
 global $DB;
 
 $logs = array(
-    array('module'=>'peerreview', 'action'=>'add',           'mtable'=>'peerreview', 'field'=>'name'),
-    array('module'=>'peerreview', 'action'=>'update',        'mtable'=>'peerreview', 'field'=>'name'),
-    array('module'=>'peerreview', 'action'=>'view',          'mtable'=>'peerreview', 'field'=>'name'),
-    array('module'=>'peerreview', 'action'=>'submit',        'mtable'=>'peerreview', 'field'=>'name'),
-    array('module'=>'peerreview', 'action'=>'review',        'mtable'=>'peerreview', 'field'=>'name'),
-    array('module'=>'peerreview', 'action'=>'view feedback', 'mtable'=>'peerreview', 'field'=>'name'),
+    array('module' => 'peerreview', 'action' => 'add',           'mtable' => 'peerreview', 'field' => 'name'),
+    array('module' => 'peerreview', 'action' => 'update',        'mtable' => 'peerreview', 'field' => 'name'),
+    array('module' => 'peerreview', 'action' => 'view',          'mtable' => 'peerreview', 'field' => 'name'),
+    array('module' => 'peerreview', 'action' => 'submit',        'mtable' => 'peerreview', 'field' => 'name'),
+    array('module' => 'peerreview', 'action' => 'review',        'mtable' => 'peerreview', 'field' => 'name'),
+    array('module' => 'peerreview', 'action' => 'view feedback', 'mtable' => 'peerreview', 'field' => 'name'),
 );

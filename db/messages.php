@@ -27,15 +27,16 @@ defined('MOODLE_INTERNAL') || die();
 
 $messageproviders = array (
 
-    // Peer reviews allocated
+    // Peer reviews allocated.
     'reviewsallocated' => array(),
 
-    // Peer review received
+    // Peer review received.
+
     'reviewreceived' => array(),
 
-    // Grade set by teacher
+    // Grade set by teacher.
     'gradeset' => array(),
 
-    // Overdue submission
+    // Overdue submission.
     'overduesubmission' => array(),
 );
